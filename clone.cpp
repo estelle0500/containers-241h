@@ -10,27 +10,29 @@
 #define STACK_SIZE (1024 * 1024)
 static char child_stack[STACK_SIZE];
 
-const int PID_Flags = SIGCHLD | CLONE_NEWPID;
-const int NET_Flags = SIGCHLD | CLONE_NEWNET;
-const int User_Flags = SIGCHLD | CLONE_NEWUSER;
-const int UTS_Flags = SIGCHLD | CLONE_NEWUTS;
-const int IPC_Flags = SIGCHLD | CLONE_NEWIPC;
-static int clone_flags;
-
 typedef struct clone_args{
     char **argv;
 } cloneArgs;
 
+const int DEFAULT       = SIGCHLD;
+const int PID_Flags     = SIGCHLD | CLONE_NEWPID;
+const int NET_Flags     = SIGCHLD | CLONE_NEWNET;
+const int User_Flags    = SIGCHLD | CLONE_NEWUSER;
+const int UTS_Flags     = SIGCHLD | CLONE_NEWUTS;
+const int IPC_Flags     = SIGCHLD | CLONE_NEWIPC;
+
+// Change this variable to modify the container type
+static int clone_flags = DEFAULT;
+
 static int child_exec(void *child_args) {
     cloneArgs *args = ((cloneArgs *) child_args);
 
-
     // Mount proc for new PID
     if(clone_flags == PID_Flags){
-        if(umount("/proc") != 0){
-            fprintf(stderr, "Failed to unmount /proc.\n");
-            exit(-1);
-        }
+//        if(umount("/proc") != 0){
+//            fprintf(stderr, "Failed to unmount /proc.\n");
+//            exit(-1);
+//        }
 
         if(mount("proc", "/proc", "proc", 0, "") != 0){
             fprintf(stderr, "Failed to mount /proc.\n");
@@ -60,9 +62,6 @@ static int child_exec(void *child_args) {
 int main(int argc, char* argv[]) {
     struct clone_args args;
     args.argv = &argv[1];
-
-    // Determines the behaviors of our container
-    clone_flags = PID_Flags;
 
     // clone(2), sPID_Flags fork to spawn our child process.
     pid_t pid;
