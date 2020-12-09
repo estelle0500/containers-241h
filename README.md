@@ -3,6 +3,7 @@ A minimal container app.
 
 # Setup
 Compile with `g++ main.cpp -o main`.
+Set the sticky bit: `sudo chown root main; sudo chmod +s main`.
 Run `./download_image.sh` to get an image.
 
 # Sample use
@@ -40,3 +41,7 @@ Cleans up process.
 3. Be able to have full write access to the container without polluting the real
 filesystem
 4. Container launches in a new root partition
+5. Container moves in a new namespace
+6. Have a user in the container that is not root
+7. Have a user in the container that has sudo privileges
+8. Be able to create a new container without being root (i.e. use the set-uid bit)
