@@ -15,7 +15,7 @@ typedef struct clone_args{
     char **argv;
 } cloneArgs;
 
-const int DEFAULT       = SIGCHLD;
+const int DEFAULT       = SIGCHLD | CLONE_NEWNS;
 const int PID_Flags     = SIGCHLD | CLONE_NEWPID;
 const int NET_Flags     = SIGCHLD | CLONE_NEWNET;
 const int USER_Flags    = SIGCHLD | CLONE_NEWUSER;
@@ -27,6 +27,11 @@ static int clone_flags = USER_Flags;
 
 static int child_exec(void *child_args) {
     cloneArgs *args = ((cloneArgs *) child_args);
+
+    if (mount("cgroup_root", "/sys/fs/cgroup", "tmpfs", 0, "") != 0){
+        fprintf(stderr, "Failed to unmount /proc.\n");
+        exit(-1);
+    }
 
     // Mount proc for new PID
     if (clone_flags == PID_Flags) {
@@ -43,7 +48,6 @@ static int child_exec(void *child_args) {
 
     // Set uid so child believes it is root
     if (clone_flags == USER_Flags) {
-
         if (seteuid(0) != 0) {
             fprintf(stderr, "Failed to set euid to 0: %s\n", strerror(errno));
             exit(-1);
