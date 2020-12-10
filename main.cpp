@@ -9,7 +9,6 @@
 #include <sched.h>
 
 #include <sys/stat.h>
-#include <sys/types.h>
 #include <sys/mount.h>
 #include <sys/wait.h>
 
@@ -80,6 +79,7 @@ void create_container(int argc, char *argv[]) {
     // Create a mount point using overlay filesystem
     string overlay_data = "lowerdir=" + image_path + ",upperdir=" + path + "/upper" 
                           + ",workdir=" + path + "/work";
+
     if (mount(image_path.c_str(), mount_point.c_str(), "overlay", 0, overlay_data.c_str()) != 0) {
         cerr << "Mount failed: " << strerror(errno) << endl;
         exit(1);
@@ -117,6 +117,7 @@ void start_child(int argc, char *argv[]) {
     // Mount at overlay filesystem
     string path = "containers/" + string(argv[2]);
     string mount_point = path + "/mnt";
+
     if (chroot(mount_point.c_str()) == -1) {
         cerr << "chroot failed: " << strerror(errno) << endl;
         exit(1);
@@ -128,7 +129,7 @@ void start_child(int argc, char *argv[]) {
     // Remount proc
     if (umount("/proc") == -1) {
         cerr << "umount proc failed: " << strerror(errno) << endl;
-    } 
+    }
     if (mount("proc", "/proc", "proc", 0, "") == -1) {
         cerr << "mount proc failed: " << strerror(errno) << endl;
     }
