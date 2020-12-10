@@ -126,6 +126,12 @@ void start_child(int argc, char *argv[]) {
         cerr << "chdir failed: " << strerror(errno) << endl;
     }
 
+    // mount cgroup
+    if (mount("cgroup_root", "/sys/fs/cgroup", "tmpfs", 0, "") != 0){
+        cerr << "Failed to mount sysfs: " << strerror(errno) << endl;
+        exit(-1);
+    }
+
     // Remount proc
     if (umount("/proc") == -1) {
         cerr << "umount proc failed: " << strerror(errno) << endl;
@@ -133,6 +139,13 @@ void start_child(int argc, char *argv[]) {
     if (mount("proc", "/proc", "proc", 0, "") == -1) {
         cerr << "mount proc failed: " << strerror(errno) << endl;
     }
+
+    // mount sys
+    // c, source="pids", fstype="cgroup" data="pids"//pids
+//    if (mount("sysfs", "/sysfs", "sysfs", 0, "") != 0){ //sysfs
+
+
+//    mkdir(concat(CGROUP_FOLDER, "cpuset"), S_IRUSR | S_IWUSR);
 
     // Make user namespace
     unshare(CLONE_NEWUSER);
@@ -149,6 +162,7 @@ void start_child(int argc, char *argv[]) {
     }
 
     // TODO replace with a shell that will read commands from a pipe
+//    if(execvp("/bin/sh", argv) != 0){
     if (execl("/bin/bash", "bash", "-c", argv[3], NULL) == -1) {
         cerr << "Exec failed: " << strerror(errno) << endl;
     }
