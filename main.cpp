@@ -13,6 +13,9 @@
 #include <sys/mount.h>
 #include <sys/wait.h>
 
+#define CGROUP_FOLDER "/sys/fs/cgroup/"
+#define concat(a,b) (a"" b)
+
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -22,6 +25,7 @@ void create_container(int argc, char *argv[]);
 void start_container(int argc, char *argv[]);
 void exec_command(int argc, char *argv[]);
 void stop_container(int argc, char *argv[]);
+void write_rule(const char* path, const char* value);
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {
@@ -41,6 +45,19 @@ int main(int argc, char *argv[]) {
 
     wait(NULL);
     return 0;
+}
+
+void write_rule(const char* path, const char* value){
+    int fp = open(path, O_WRONLY | O_APPEND);
+    write(fp, value, strlen(value));
+    close(fp);
+}
+
+void LimitProcesses(){
+    mkdir(concat(CGROUP_FOLDER, "pids"), S_IRUSR | S_IWUSR);
+    const char* pid = std::to_string((getpid())).c_str();
+    write_rule(concat(CGROUP_FOLDER, "cgroup.procs"), pid);
+    write_rule(concat(CGROUP_FOLDER, "pids.max"), "5");
 }
 
 void create_container(int argc, char *argv[]) {
